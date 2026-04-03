@@ -18,35 +18,12 @@ function buildNowPlayingEmbed(song, serverQueue) {
         'queue': '🔁 Kuyruk Tekrar',
     };
 
-    let durationValue = song.duration || 'Bilinmiyor';
-    
-    if (song.durationSeconds > 0 && serverQueue) {
-        const isPaused = serverQueue.player?.state?.status === 'paused';
-        const playbackDuration = serverQueue.player?.state?.resource?.playbackDuration || 0;
-        const elapsedSeconds = Math.floor(playbackDuration / 1000);
-        
-        const formatSecs = (s) => `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, '0')}`;
-        const currentStr = formatSecs(elapsedSeconds);
-        const totalStr = formatSecs(song.durationSeconds);
-        
-        let bar = '';
-        const blocks = 15;
-        const progress = Math.min(1, elapsedSeconds / song.durationSeconds);
-        const activeBlock = Math.floor(progress * blocks);
-        for(let i = 0; i < blocks; i++) {
-            bar += (i === activeBlock) ? '🔘' : '▬';
-        }
-
-        durationValue = `\`${currentStr} / ${totalStr}\`\n${bar}`;
-        if (isPaused) durationValue += ' ⏸️';
-    }
-
     return new EmbedBuilder()
         .setColor(COLORS.PRIMARY)
         .setTitle('🎵 Şimdi Çalınıyor')
         .setDescription(`**[${song.title}](${song.url})**`)
         .addFields(
-            { name: '⏱️ Süre', value: durationValue, inline: true },
+            { name: '⏱️ Süre', value: song.duration || 'Bilinmiyor', inline: true },
             { name: '🔊 Ses', value: `${serverQueue.volume}%`, inline: true },
             { name: '🔄 Döngü', value: loopText[serverQueue.loop], inline: true },
             { name: '📋 Sıra', value: `${serverQueue.currentIndex + 1}/${serverQueue.songs.length}`, inline: true },

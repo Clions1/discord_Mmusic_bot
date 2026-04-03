@@ -16,11 +16,6 @@ const { buildNowPlayingEmbed, buildPlayerButtons } = require('./embeds');
 async function playSong(guildId) {
     const serverQueue = queue.get(guildId);
 
-    if (serverQueue.progressInterval) {
-        clearInterval(serverQueue.progressInterval);
-        serverQueue.progressInterval = null;
-    }
-
     if (!serverQueue.songs.length || serverQueue.currentIndex >= serverQueue.songs.length) {
         serverQueue.playing = false;
         // 3 dakika boşta kalırsa çık
@@ -106,19 +101,7 @@ async function playSong(guildId) {
         // Şimdi çalınan şarkı bilgisi
         const embed = buildNowPlayingEmbed(song, serverQueue);
         const components = buildPlayerButtons(serverQueue);
-        serverQueue.nowPlayingMessage = await serverQueue.textChannel?.send({ embeds: [embed], components });
-
-        // Sürekli güncellenen progress bar
-        serverQueue.progressInterval = setInterval(() => {
-            if (!queue.has(guildId) || !serverQueue.playing) {
-                clearInterval(serverQueue.progressInterval);
-                return;
-            }
-            if (serverQueue.nowPlayingMessage && song.durationSeconds > 0) {
-                const refreshedEmbed = buildNowPlayingEmbed(song, serverQueue);
-                serverQueue.nowPlayingMessage.edit({ embeds: [refreshedEmbed] }).catch(() => {});
-            }
-        }, 5000);
+        serverQueue.textChannel?.send({ embeds: [embed], components });
 
     } catch (error) {
         console.error('[Play Error]', error.message);
