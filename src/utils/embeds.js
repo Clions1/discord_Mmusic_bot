@@ -18,12 +18,28 @@ function buildNowPlayingEmbed(song, serverQueue) {
         'queue': '🔁 Kuyruk Tekrar',
     };
 
+    let durationValue = song.duration || 'Bilinmiyor';
+    
+    if (song.durationSeconds > 0 && serverQueue) {
+        const isPaused = serverQueue.player?.state?.status === 'paused';
+        const playbackDuration = serverQueue.player?.state?.resource?.playbackDuration || 0;
+        const elapsedSeconds = Math.floor(playbackDuration / 1000);
+        const remainingSeconds = song.durationSeconds - elapsedSeconds;
+        
+        if (isPaused) {
+            durationValue = `${song.duration} (⏸️ Duraklatıldı)`;
+        } else if (remainingSeconds > 0) {
+            const endsAt = Math.floor(Date.now() / 1000) + remainingSeconds;
+            durationValue = `${song.duration} (<t:${endsAt}:R> biter)`;
+        }
+    }
+
     return new EmbedBuilder()
         .setColor(COLORS.PRIMARY)
         .setTitle('🎵 Şimdi Çalınıyor')
         .setDescription(`**[${song.title}](${song.url})**`)
         .addFields(
-            { name: '⏱️ Süre', value: song.duration || 'Bilinmiyor', inline: true },
+            { name: '⏱️ Süre', value: durationValue, inline: true },
             { name: '🔊 Ses', value: `${serverQueue.volume}%`, inline: true },
             { name: '🔄 Döngü', value: loopText[serverQueue.loop], inline: true },
             { name: '📋 Sıra', value: `${serverQueue.currentIndex + 1}/${serverQueue.songs.length}`, inline: true },
