@@ -24,14 +24,21 @@ function buildNowPlayingEmbed(song, serverQueue) {
         const isPaused = serverQueue.player?.state?.status === 'paused';
         const playbackDuration = serverQueue.player?.state?.resource?.playbackDuration || 0;
         const elapsedSeconds = Math.floor(playbackDuration / 1000);
-        const remainingSeconds = song.durationSeconds - elapsedSeconds;
         
-        if (isPaused) {
-            durationValue = `${song.duration} (⏸️ Duraklatıldı)`;
-        } else if (remainingSeconds > 0) {
-            const endsAt = Math.floor(Date.now() / 1000) + remainingSeconds;
-            durationValue = `${song.duration} (<t:${endsAt}:R> biter)`;
+        const formatSecs = (s) => `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, '0')}`;
+        const currentStr = formatSecs(elapsedSeconds);
+        const totalStr = formatSecs(song.durationSeconds);
+        
+        let bar = '';
+        const blocks = 15;
+        const progress = Math.min(1, elapsedSeconds / song.durationSeconds);
+        const activeBlock = Math.floor(progress * blocks);
+        for(let i = 0; i < blocks; i++) {
+            bar += (i === activeBlock) ? '🔘' : '▬';
         }
+
+        durationValue = `\`${currentStr} / ${totalStr}\`\n${bar}`;
+        if (isPaused) durationValue += ' ⏸️';
     }
 
     return new EmbedBuilder()
